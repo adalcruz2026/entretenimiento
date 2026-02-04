@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Entrenamiento Visual Pro - Canarias</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            transition: background-color 2s ease;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::after {
+            content: '+';
+            color: rgba(128, 128, 128, 0.15);
+            font-size: 24px;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        /* Panel de Control */
+        #controles {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        button {
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: none;
+            background: #004777;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        input[type=range] { cursor: pointer; }
+
+        label { font-size: 12px; font-weight: bold; color: #333; }
+
+        .palabra {
+            position: absolute;
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            will-change: transform, opacity;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div id="controles">
+    <div class="control-group">
+        <label>Velocidad</label>
+        <input type="range" id="velRange" min="500" max="4000" value="2000" step="100" dir="rtl">
+    </div>
+    <button id="btnPausa">Pausar</button>
+</div>
+
+<script>
+    const palabras = [
+        "Adeje", "Agaete", "Agüimes", "Agulo", "Alajeró", "Antigua", "Arrecife", "Artenara", "Arucas", "Betancuria", 
+        "Breña Alta", "Breña Baja", "Buenavista del Norte", "Candelaria", "El Paso", "El Pinar", "El Rosario", "El Sauzal", "El Tanque", "Fasnia", 
+        "Firgas", "Fuencaliente", "Gáldar", "Garachico", "Garafía", "Granadilla de Abona", "Guía de Isora", "Güímar", "Hermigua", "Icod de los Vinos", 
+        "Ingenio", "La Aldea de San Nicolás", "La Guancha", "La Matanza", "La Oliva", "La Orotava", "La Victoria", "Las Palmas de GC", "Los Llanos de Aridane", "Los Realejos", 
+        "Los Silos", "Mazo", "Mogán", "Moya", "Pájara", "Puntagorda", "Puntallana", "Puerto de la Cruz", "Puerto del Rosario", "Puerto Calero",
+        "San Bartolomé", "San Bartolomé de Tirajana", "San Cristóbal de La Laguna", "San Juan de la Rambla", "San Miguel de Abona", "San Sebastián de La Gomera", "Santa Brígida", "Santa Cruz de la Palma", "Santa Cruz de Tenerife", "Santa Lucía de Tirajana", 
+        "Santa María de Guía", "Santa Úrsula", "Santiago del Teide", "Tacoronte", "Tazacorte", "Tegueste", "Teguise", "Tías", "Tijarafe", "Tinajo", 
+        "Tuineje", "Valle Gran Rey", "Vallehermoso", "Valleseco", "Valsequillo", "Valverde", "Vega de San Mateo", "Vilaflor", "Yaiza", "Arona",
+        "Telde", "Teror", "Arure", "Chipude", "El Golfo", "Masca", "Taganana", "Caleta de Fuste", "Corralejo",
+        "Costa Teguise", "Playa Blanca", "Puerto del Carmen", "Morro Jable", "Jandía", "Gran Tarajal", "Costa Calma", "El Cotillo", "San Andrés", "La Restinga"
+    ];
+
+    const colores = ["#004777", "#A30000", "#FF8C00", "#005C53", "#2D3047"];
+    let esNoche = false;
+    let pausado = false;
+    let timer;
+
+    const btnPausa = document.getElementById('btnPausa');
+    const velRange = document.getElementById('velRange');
+
+    btnPausa.onclick = () => {
+        pausado = !pausado;
+        btnPausa.innerText = pausado ? "Reanudar" : "Pausar";
+        btnPausa.style.background = pausado ? "#A30000" : "#004777";
+        if (!pausado) programarSiguiente();
+    };
+
+    function actualizarAmbiente() {
+        const hora = new Date().getHours(); 
+        esNoche = (hora >= 21 || hora < 6);
+        document.body.style.backgroundColor = esNoche ? "#0a0a0c" : "#f8f9fa"; 
+    }
+
+    function añadirMunicipio() {
+        if (pausado) return;
+
+        const span = document.createElement('span');
+        span.innerText = palabras[Math.floor(Math.random() * palabras.length)];
+        span.className = 'palabra';
+        
+        const size = Math.floor(Math.random() * (85 - 14 + 1)) + 14; 
+        const color = esNoche ? "#ffffff" : colores[Math.floor(Math.random() * colores.length)];
+        
+        const margin = 150;
+        const x = Math.random() * (window.innerWidth - margin) + (margin / 4);
+        const y = Math.random() * (window.innerHeight - margin) + (margin / 4);
+
+        span.style.fontSize = size + "px";
+        span.style.color = color;
+        span.style.left = x + "px";
+        span.style.top = y + "px";
+        span.style.opacity = 0;
+        span.style.transform = "scale(0.5)";
+        span.style.transition = "opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+
+        document.body.appendChild(span);
+
+        requestAnimationFrame(() => {
+            span.style.opacity = 1; 
+            span.style.transform = "scale(1)"; 
+        });
+
+        setTimeout(() => {
+            span.style.opacity = 0;
+            setTimeout(() => span.remove(), 600);
+        }, 2200);
+
+        programarSiguiente();
+    }
+
+    function programarSiguiente() {
+        clearTimeout(timer);
+        if (pausado) return;
+        
+        // El slider controla el tiempo base (a menos valor, más rápido)
+        const baseVel = parseInt(velRange.value);
+        const variacion = Math.random() * (baseVel * 0.5); 
+        timer = setTimeout(añadirMunicipio, (baseVel / 2) + variacion);
+    }
+
+    // INICIO
+    actualizarAmbiente();
+    programarSiguiente();
+    setInterval(actualizarAmbiente, 300000);
+
+</script>
+</body>
+</html>
